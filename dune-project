@@ -1,23 +1,23 @@
 (lang dune 3.9)
 
-(name PROJECT_NAME_)
+(name snkal)
 
 (generate_opam_files true)
 
 (source
- (github _AUTHOR_USERNAME_/PROJECT_NAME_))
+ (github CharlesAverill/snkal))
 
-(authors "_AUTHOR_NAME_")
+(authors "CharlesAverill")
 
-(maintainers "_AUTHOR_NAME_")
+(maintainers "CharlesAverill")
 
-(license _SPX_LICENSE_)
+(license MIT)
 
-(documentation https://github.com/_AUTHOR_USERNAME_/PROJECT_NAME_)
+(documentation https://github.com/CharlesAverill/snkal)
 
 (package
- (name PROJECT_NAME_)
- (synopsis "_PROJECT_SYNOPSIS_")
- (description "_PROJECT_DESCRIPTION_")
+ (name snkal)
+ (synopsis "Learning symbolic NetKAT automata from simulated firewalls")
+ (description "Learning symbolic NetKAT automata from simulated firewalls using the L* algorithm")
  (depends ocaml dune alcotest ocamlformat odoc))
 

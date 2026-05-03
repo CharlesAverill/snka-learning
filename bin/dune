@@ -1,4 +1,4 @@
 (executable
  (public_name snkal)
  (name main)
- (libraries snkal))
+ (libraries snkal snkal.firewalls))

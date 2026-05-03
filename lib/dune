@@ -1,4 +1,4 @@
 (library
  (name snkal)
  (public_name snkal)
- (modules logging))
+ (modules :standard))

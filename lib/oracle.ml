@@ -175,7 +175,7 @@ module SmartOracle (C : CLASSIFY) = struct
     if found then stats.hits <- stats.hits + 1 ;
     st.total_trials <- st.total_trials + 1
 
-  (* Generate candidates for a given axis — used by BFS check below *)
+  (* Generate candidates for a given axis - used by BFS check below *)
   let mutations_for_seeds ax seeds =
     List.concat_map (mutations_for_axis ax) seeds |> List.sort_uniq compare
 
@@ -184,9 +184,13 @@ module SmartOracle (C : CLASSIFY) = struct
 
   (* Search a candidate list preferring oracle=true/DFA=false, then any mismatch *)
   let find_cex run_dfa mem_query words =
-    match List.find_opt (fun w -> mem_query w = true && not (run_dfa w)) words with
-    | Some _ as c -> c
-    | None -> List.find_opt (check_word run_dfa mem_query) words
+    match
+      List.find_opt (fun w -> mem_query w = true && not (run_dfa w)) words
+    with
+    | Some _ as c ->
+        c
+    | None ->
+        List.find_opt (check_word run_dfa mem_query) words
 
   (* Main equivalence check entry point.
      BFS over axes: test all axes at depth-1 (singles) before any depth-2
@@ -213,7 +217,9 @@ module SmartOracle (C : CLASSIFY) = struct
     let all_pairs =
       List.concat_map
         (fun (_, pkts) ->
-          List.concat_map (fun seed -> List.map (fun p -> [seed; p]) pkts) st.seeds )
+          List.concat_map
+            (fun seed -> List.map (fun p -> [seed; p]) pkts)
+            st.seeds )
         per_axis
       |> List.sort_uniq compare
     in
@@ -222,21 +228,24 @@ module SmartOracle (C : CLASSIFY) = struct
     let randoms = List.init n_rand (fun _ -> random_packet ()) in
     let rand_singles = List.map (fun p -> [p]) randoms in
     let rand_pairs =
-      List.concat_map (fun seed -> List.map (fun p -> [seed; p]) randoms) st.seeds
+      List.concat_map
+        (fun seed -> List.map (fun p -> [seed; p]) randoms)
+        st.seeds
     in
     (* Test every seed as a single word first, before any mutations.
        This ensures the DFA is checked against all known-interesting packets
        before we start exploring neighbours. *)
     let seed_singles = List.map (fun p -> [p]) st.seeds in
-    let all_words = seed_singles @ all_singles @ rand_singles @ all_pairs @ rand_pairs in
+    let all_words =
+      seed_singles @ all_singles @ rand_singles @ all_pairs @ rand_pairs
+    in
     let cex = find_cex run_dfa mem_query all_words in
     (* Update UCB stats: credit whichever axis the counterexample came from *)
     let cex_pkts = Option.fold ~none:[] ~some:(fun w -> w) cex in
     List.iter
       (fun (ax, pkts) ->
         let hit =
-          Option.is_some cex
-          && List.exists (fun p -> List.mem p pkts) cex_pkts
+          Option.is_some cex && List.exists (fun p -> List.mem p pkts) cex_pkts
         in
         record st ax hit )
       per_axis ;

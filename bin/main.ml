@@ -4,8 +4,16 @@ open Oracle
 open Lstar
 open Netkat
 open Firewalls
-open Example
-module FWLearner = Lstar (ExampleFirewall)
+open Cve_0230
+
+
+module WebAppCfg = struct
+  let addr = "127.0.0.1"
+  let port = 9000
+end
+
+module FW = Cve_0230
+module FWLearner = Lstar (FW)
 
 let spot_checks =
   [ (* Should FORWARD *)
@@ -311,6 +319,26 @@ let seeds : packet list =
     ; flags= 0x02
     ; payload_len= 512
     ; direction= Inbound }
+  ; (* Vulnerability-triggering packets *)
+ { src_ip= (6,6,6,6)
+  ; dst_ip= (10,0,0,1)
+  ; src_port= 80
+  ; dst_port= 31337
+  ; protocol= TCP
+  ; ttl= 64
+  ; flags= 0x02
+  ; payload_len= 128
+  ; direction= Inbound }
+
+; { src_ip= (7,7,7,7)
+  ; dst_ip= (10,0,0,1)
+  ; src_port= 443
+  ; dst_port= 9000
+  ; protocol= TCP
+  ; ttl= 64
+  ; flags= 0x02
+  ; payload_len= 256
+  ; direction= Inbound }
   ; (* Forwarded: outbound ephemeral *)
     { src_ip= (10, 0, 0, 1)
     ; dst_ip= (8, 8, 8, 8)
@@ -582,7 +610,13 @@ let seeds : packet list =
     ; ttl= 64
     ; flags= 0x02
     ; payload_len= 256
-    ; direction= Outbound } ]
+    ; direction= Outbound };
+{ src_ip=(10,0,0,1); dst_ip=(8,8,8,8); src_port=1024; dst_port=80;
+  protocol=TCP; ttl=64; flags=0x02; payload_len=512; direction=Outbound };
+{ src_ip=(10,0,0,1); dst_ip=(8,8,8,8); src_port=1023; dst_port=80;
+  protocol=TCP; ttl=64; flags=0x02; payload_len=512; direction=Outbound };
+{ src_ip=(10,0,0,1); dst_ip=(8,8,8,8); src_port=13018; dst_port=80;
+  protocol=TCP; ttl=64; flags=0x02; payload_len=512; direction=Outbound }]
 
 let calculate_accuracy sfa test_pkts =
   let total = List.length test_pkts in
@@ -592,7 +626,7 @@ let calculate_accuracy sfa test_pkts =
     let correct =
       List.fold_left
         (fun count pkt ->
-          let expected = ExampleFirewall.classify pkt in
+          let expected = FW.classify pkt in
           let got = FWLearner.run_sfa sfa [pkt] in
           if expected = got then
             count + 1
@@ -630,7 +664,7 @@ let () =
   let equivalence_check (sfa : sfa) : FWLearner.word option =
     incr round_counter ;
     let ax = best_axis () in
-    let current_accuracy = calculate_accuracy sfa spot_checks in
+    let current_accuracy = calculate_accuracy sfa (spot_checks @ seeds) in
     Printf.printf "[Round %d] axis=%s  seeds=%d  accuracy=%.2f%%\n%!"
       !round_counter (axis_name ax)
       (List.length !oracle_seeds)
@@ -671,7 +705,7 @@ let () =
   in
   Printf.printf "=== L* firewall learner with smart oracle ===\n%!" ;
   let sfa =
-    FWLearner.run ~max_rounds:30 ~initial_known:seeds equivalence_check
+    FWLearner.run ~max_rounds:15 ~initial_known:seeds equivalence_check
   in
   Printf.printf "\n=== Learned SFA ===\n" ;
   Printf.printf "  States      : %d\n" (List.length sfa.states) ;
@@ -690,7 +724,7 @@ let () =
   Printf.printf "\n=== Spot checks ===\n" ;
   List.iter
     (fun pkt ->
-      let expected = ExampleFirewall.classify pkt in
+      let expected = FW.classify pkt in
       let got = FWLearner.run_sfa sfa [pkt] in
       Printf.printf "  [%s] oracle=%-5b hyp=%-5b  %s\n"
         ( if expected = got then
@@ -702,4 +736,4 @@ let () =
   let na = translate_sfa sfa in
   print_netkat_automaton na;
   Printf.printf "\n-- .nkpl output --\n";
-  emit_nkpl na
+  emit_nkpl na "firewall.nkpl"

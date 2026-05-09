@@ -10,3 +10,4 @@
 *.cmxa
 _build
 *.tar.gz
+*.nkpl

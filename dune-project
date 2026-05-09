@@ -19,5 +19,5 @@
  (name snkal)
  (synopsis "Learning symbolic NetKAT automata from simulated firewalls")
  (description "Learning symbolic NetKAT automata from simulated firewalls using the L* algorithm")
- (depends ocaml dune alcotest ocamlformat odoc))
+ (depends ocaml dune ocamlformat))
 

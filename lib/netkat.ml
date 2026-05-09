@@ -135,7 +135,7 @@ let rec nkpl_of_pred = function
   | PTop ->
       "true"
   | PBot ->
-      "false"
+      "∅"
   | PTest (DstPort n) ->
       Printf.sprintf "@dst=%d" n
   | PTest (SrcPort n) ->
@@ -168,7 +168,11 @@ let rec nkpl_of_pred = function
 (* Emit a .nkpl file that defines the learned firewall as a NetKAT policy.
    Each state becomes a named filter term; the start state becomes `firewall`.
    Accepting states pass packets through (filter?⋅δ); non-accepting states drop (false?). *)
-let emit_nkpl (na : netkat_automaton) : unit =
+let emit_nkpl (na : netkat_automaton) (fn : string) : unit =
+  let out_fd = open_out fn in
+  let print_and_log s =
+    Printf.printf "%s" s;
+    Out_channel.output_string out_fd s in
   (* Collect outgoing edges per state *)
   let edges_of s =
     List.filter_map
@@ -211,17 +215,18 @@ let emit_nkpl (na : netkat_automaton) : unit =
     in
     accept_pred
   in
-  Printf.printf "-- Auto-generated from learned NetKAT automaton\n" ;
-  Printf.printf "-- %d states, start=%d, accept={%s}\n\n" na.state_count
+  print_and_log "-- Auto-generated from learned NetKAT automaton\n" ;
+  print_and_log (Printf.sprintf "-- %d states, start=%d, accept={%s}\n\n" na.state_count
     na.start_state
-    (String.concat "," (List.map string_of_int na.accept_states)) ;
+    (String.concat "," (List.map string_of_int na.accept_states))) ;
   (* Emit one named predicate per non-sink state *)
   List.iter
     (fun s ->
       if List.mem s na.accept_states then begin
         let pred = state_policy s in
-        Printf.printf "state%d =\n  %s\n\n" s pred
+        print_and_log (Printf.sprintf "state%d =\n  %s\n\n" s pred)
       end )
     (List.init na.state_count Fun.id) ;
   (* The top-level firewall policy: filter start state's accept pred, then dup *)
-  Printf.printf "firewall = state%d?⋅δ\n" na.start_state
+  print_and_log (Printf.sprintf "firewall = state%d?⋅δ\n" na.start_state);
+  close_out out_fd

@@ -12,9 +12,8 @@ bug-reports: "https://github.com/CharlesAverill/snkal/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.9"}
-  "alcotest"
   "ocamlformat"
-  "odoc"
+  "odoc" {with-doc}
 ]
 build: [
   ["dune" "subst"] {dev}

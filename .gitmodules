@@ -1,0 +1,3 @@
+[submodule "netkat"]
+	path = netkat
+	url = https://github.com/netkat-lang/netkat

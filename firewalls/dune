@@ -1,4 +1,4 @@
 (library
  (name firewalls)
  (public_name snkal.firewalls)
- (libraries snkal))
+ (libraries snkal unix))

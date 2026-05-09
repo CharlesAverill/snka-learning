@@ -4,6 +4,13 @@ Learning symbolic NetKAT automata from simulated firewalls using the L* algorith
 
 ## Installation and Usage
 
+A [Dockerfile](./Dockerfile) is provided to bypass manual installation:
+
+```
+docker build -t snkal .
+docker run --rm snkal
+```
+
 Requires [dune](https://dune.build/install) and [opam](https://opam.ocaml.org/doc/Install.html) to build and install dependencies.
 
 ```

@@ -21,6 +21,7 @@ opam switch create snkal
 opam install . --deps-only
 cd netkat
 opam install . --deps-only
+opam install async ego
 cd ..
 
 dune build

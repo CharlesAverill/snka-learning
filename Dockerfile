@@ -20,8 +20,6 @@ RUN git clone --recurse-submodules https://github.com/CharlesAverill/snka-learni
 
 WORKDIR /home/opam/snka-learning
 
-RUN opam switch create . ocaml-base-compiler.5.1.1
-
 RUN opam install -y dune async ego menhir sedlex yojson core async_unix
 RUN eval $(opam env) && \
     opam install -y . --deps-only
